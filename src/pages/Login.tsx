@@ -20,16 +20,12 @@ const Login = () => {
   const validateForm = () => {
     const newErrors: { email?: string; password?: string } = {};
     
-    if (!email) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = "Please enter a valid email";
+    if (!email.trim()) {
+      newErrors.email = "Username is required";
     }
     
     if (!password) {
       newErrors.password = "Password is required";
-    } else if (password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
     }
     
     setErrors(newErrors);
@@ -112,11 +108,11 @@ const Login = () => {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Username</Label>
                 <Input
                   id="email"
-                  type="email"
-                  placeholder="Enter your email"
+                  type="text"
+                  placeholder="Enter username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className={errors.email ? "border-destructive focus-visible:ring-destructive" : ""}
