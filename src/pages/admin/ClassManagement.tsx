@@ -49,6 +49,15 @@ const mockClasses: ClassEntry[] = [
 const classLevels = Array.from({ length: 12 }, (_, i) => `Class ${i + 1}`);
 const sectionOptions = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
+interface FlattenedClassEntry {
+  id: string;
+  classLevel: string;
+  section: string;
+  assignedUser: string;
+  streamUrl: string;
+  status: "active" | "inactive";
+}
+
 const ClassManagement = () => {
   const [classes, setClasses] = useState<ClassEntry[]>(mockClasses);
   const [showForm, setShowForm] = useState(false);
@@ -62,8 +71,21 @@ const ClassManagement = () => {
     streamUrl: "",
   });
 
-  const filteredClasses = classes.filter(c => 
+  // Flatten classes so each section is a separate row
+  const flattenedClasses: FlattenedClassEntry[] = classes.flatMap(c => 
+    c.sections.map((section, idx) => ({
+      id: `${c.id}-${section}`,
+      classLevel: c.classLevel,
+      section: section,
+      assignedUser: c.assignedUser,
+      streamUrl: c.streamUrl,
+      status: c.status,
+    }))
+  );
+
+  const filteredClasses = flattenedClasses.filter(c => 
     c.classLevel.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.section.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.assignedUser.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -177,8 +199,7 @@ const ClassManagement = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-secondary/50">
-                  <TableHead>Class</TableHead>
-                  <TableHead>Sections</TableHead>
+                  <TableHead>Class & Section</TableHead>
                   <TableHead>Assigned User</TableHead>
                   <TableHead>Streaming URL</TableHead>
                   <TableHead>Status</TableHead>
@@ -192,14 +213,12 @@ const ClassManagement = () => {
                     className="animate-fade-in"
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
-                    <TableCell className="font-medium">{classItem.classLevel}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1 flex-wrap">
-                        {classItem.sections.map(section => (
-                          <Badge key={section} variant="secondary" className="bg-primary/10 text-primary">
-                            {section}
-                          </Badge>
-                        ))}
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        <span>{classItem.classLevel}</span>
+                        <Badge variant="secondary" className="bg-primary/10 text-primary">
+                          Section {classItem.section}
+                        </Badge>
                       </div>
                     </TableCell>
                     <TableCell>{classItem.assignedUser}</TableCell>
@@ -237,7 +256,7 @@ const ClassManagement = () => {
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => handleDelete(classItem.id)}
+                          onClick={() => handleDelete(classItem.id.split('-')[0])}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
