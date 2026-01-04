@@ -34,8 +34,13 @@ import {
   Video,
   Eye,
   EyeOff,
-  Search
+  Search,
+  Wifi,
+  WifiOff,
+  Copy,
+  Check
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface ClassEntry {
   id: string;
@@ -73,6 +78,9 @@ const ClassManagement = () => {
   const [showUrls, setShowUrls] = useState<Record<string, boolean>>({});
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<FlattenedClassEntry | null>(null);
+  const [cameraDialogOpen, setCameraDialogOpen] = useState(false);
+  const [selectedCamera, setSelectedCamera] = useState<FlattenedClassEntry | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const [formData, setFormData] = useState({
     classLevel: "",
@@ -145,6 +153,18 @@ const ClassManagement = () => {
     
     setEditDialogOpen(false);
     setEditingEntry(null);
+  };
+
+  const handleCameraClick = (entry: FlattenedClassEntry) => {
+    setSelectedCamera(entry);
+    setCameraDialogOpen(true);
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    toast.success("Stream URL copied to clipboard");
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -292,7 +312,12 @@ const ClassManagement = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={() => handleCameraClick(classItem)}
+                        >
                           <Video className="w-4 h-4" />
                         </Button>
                         <Button 
@@ -369,6 +394,105 @@ const ClassManagement = () => {
             </Button>
             <Button variant="gradient" onClick={handleEditSave}>
               Save Changes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Camera Preview Dialog */}
+      <Dialog open={cameraDialogOpen} onOpenChange={setCameraDialogOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Video className="w-5 h-5 text-primary" />
+              Live Stream Preview
+            </DialogTitle>
+            <DialogDescription>
+              {selectedCamera && `${selectedCamera.classLevel} - Section ${selectedCamera.section}`}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Video Preview Area */}
+            <div className="relative aspect-video bg-secondary/50 rounded-lg overflow-hidden border border-border">
+              {selectedCamera?.status === "active" ? (
+                <>
+                  {/* Placeholder for video - in production, use HLS.js or similar */}
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+                    <div className="relative">
+                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                        <Video className="w-8 h-8 text-primary" />
+                      </div>
+                      <span className="absolute top-0 right-0 w-4 h-4 bg-success rounded-full animate-pulse" />
+                    </div>
+                    <p className="text-lg font-medium">Stream Ready</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      RTSP streams require a media server to convert to web-compatible format (HLS/WebRTC)
+                    </p>
+                    <Badge className="mt-3 bg-success/10 text-success">
+                      <Wifi className="w-3 h-3 mr-1" />
+                      Connected
+                    </Badge>
+                  </div>
+                  
+                  {/* Status indicator */}
+                  <div className="absolute top-3 left-3">
+                    <Badge variant="destructive" className="bg-red-600 text-white animate-pulse">
+                      <span className="w-2 h-2 rounded-full bg-white mr-1.5" />
+                      LIVE
+                    </Badge>
+                  </div>
+                </>
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+                  <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+                    <WifiOff className="w-8 h-8 text-destructive" />
+                  </div>
+                  <p className="text-lg font-medium">Stream Offline</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    This stream is currently inactive
+                  </p>
+                  <Badge className="mt-3 bg-destructive/10 text-destructive">
+                    <WifiOff className="w-3 h-3 mr-1" />
+                    Disconnected
+                  </Badge>
+                </div>
+              )}
+            </div>
+
+            {/* Stream Details */}
+            <div className="bg-secondary/30 rounded-lg p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Stream URL</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => selectedCamera && copyToClipboard(selectedCamera.streamUrl)}
+                >
+                  {copied ? <Check className="w-4 h-4 mr-1 text-success" /> : <Copy className="w-4 h-4 mr-1" />}
+                  {copied ? "Copied" : "Copy URL"}
+                </Button>
+              </div>
+              <code className="block text-xs bg-background p-2 rounded border break-all">
+                {selectedCamera?.streamUrl}
+              </code>
+              
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <div>
+                  <span className="text-xs text-muted-foreground">Assigned To</span>
+                  <p className="font-medium">{selectedCamera?.assignedUser}</p>
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground">Status</span>
+                  <p className="font-medium capitalize">{selectedCamera?.status}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 mt-2">
+            <Button variant="outline" onClick={() => setCameraDialogOpen(false)}>
+              Close
             </Button>
           </div>
         </DialogContent>
