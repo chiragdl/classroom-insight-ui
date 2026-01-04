@@ -3,20 +3,12 @@ import AdminHeader from "@/components/AdminHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { 
   Cpu, 
   Zap, 
   Target, 
   Clock, 
-  CheckCircle2, 
-  Settings2,
-  Lock,
-  Sparkles
+  CheckCircle2
 } from "lucide-react";
 
 interface Model {
@@ -163,42 +155,6 @@ const ModelSelection = () => {
             );
           })}
         </div>
-
-        {/* Customize Model Button */}
-        <Card className="border-dashed border-2 animate-fade-in" style={{ animationDelay: "400ms" }}>
-          <CardContent className="py-8">
-            <div className="flex flex-col items-center justify-center text-center">
-              <div className="relative">
-                <div className="p-4 rounded-2xl bg-secondary">
-                  <Settings2 className="w-8 h-8 text-muted-foreground" />
-                </div>
-                <div className="absolute -top-1 -right-1 p-1 bg-background rounded-full">
-                  <Lock className="w-4 h-4 text-muted-foreground" />
-                </div>
-              </div>
-              
-              <h3 className="text-lg font-semibold mt-4 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-accent" />
-                Customize Model
-              </h3>
-              <p className="text-muted-foreground mt-2 max-w-md">
-                Fine-tune detection models specifically for your classroom environment with custom training data.
-              </p>
-              
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="secondary" className="mt-4" disabled>
-                    <Lock className="w-4 h-4 mr-2" />
-                    Coming Soon
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="bg-popover">
-                  <p>🚧 Fine-tuned Object Detection Models - Coming Soon</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Currently Selected */}
         <Card className="bg-primary/5 border-primary/20 animate-fade-in" style={{ animationDelay: "500ms" }}>

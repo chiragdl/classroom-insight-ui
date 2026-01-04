@@ -9,6 +9,7 @@ import AdminLayout from "./layouts/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ClassManagement from "./pages/admin/ClassManagement";
 import ModelSelection from "./pages/admin/ModelSelection";
+import UserManagement from "./pages/admin/UserManagement";
 import UserDashboard from "./pages/UserDashboard";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route index element={<AdminDashboard />} />
             <Route path="classes" element={<ClassManagement />} />
             <Route path="models" element={<ModelSelection />} />
+            <Route path="users" element={<UserManagement />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

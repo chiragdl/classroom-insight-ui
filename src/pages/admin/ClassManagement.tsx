@@ -19,6 +19,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { 
   Plus, 
@@ -51,6 +58,7 @@ const sectionOptions = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 interface FlattenedClassEntry {
   id: string;
+  originalId: string;
   classLevel: string;
   section: string;
   assignedUser: string;
@@ -63,6 +71,8 @@ const ClassManagement = () => {
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [showUrls, setShowUrls] = useState<Record<string, boolean>>({});
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<FlattenedClassEntry | null>(null);
 
   const [formData, setFormData] = useState({
     classLevel: "",
@@ -71,10 +81,17 @@ const ClassManagement = () => {
     streamUrl: "",
   });
 
+  const [editFormData, setEditFormData] = useState({
+    assignedUser: "",
+    streamUrl: "",
+    status: "active" as "active" | "inactive",
+  });
+
   // Flatten classes so each section is a separate row
   const flattenedClasses: FlattenedClassEntry[] = classes.flatMap(c => 
-    c.sections.map((section, idx) => ({
+    c.sections.map((section) => ({
       id: `${c.id}-${section}`,
+      originalId: c.id,
       classLevel: c.classLevel,
       section: section,
       assignedUser: c.assignedUser,
@@ -99,6 +116,35 @@ const ClassManagement = () => {
 
   const handleDelete = (id: string) => {
     setClasses(prev => prev.filter(c => c.id !== id));
+  };
+
+  const handleEditClick = (entry: FlattenedClassEntry) => {
+    setEditingEntry(entry);
+    setEditFormData({
+      assignedUser: entry.assignedUser,
+      streamUrl: entry.streamUrl,
+      status: entry.status,
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSave = () => {
+    if (!editingEntry) return;
+    
+    setClasses(prev => prev.map(c => {
+      if (c.id === editingEntry.originalId) {
+        return {
+          ...c,
+          assignedUser: editFormData.assignedUser,
+          streamUrl: editFormData.streamUrl,
+          status: editFormData.status,
+        };
+      }
+      return c;
+    }));
+    
+    setEditDialogOpen(false);
+    setEditingEntry(null);
   };
 
   return (
@@ -249,14 +295,19 @@ const ClassManagement = () => {
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <Video className="w-4 h-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={() => handleEditClick(classItem)}
+                        >
                           <Pencil className="w-4 h-4" />
                         </Button>
                         <Button 
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => handleDelete(classItem.id.split('-')[0])}
+                          onClick={() => handleDelete(classItem.originalId)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -269,6 +320,59 @@ const ClassManagement = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Class Details</DialogTitle>
+            <DialogDescription>
+              {editingEntry && `${editingEntry.classLevel} - Section ${editingEntry.section}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Assigned User</Label>
+              <Input 
+                value={editFormData.assignedUser}
+                onChange={(e) => setEditFormData({...editFormData, assignedUser: e.target.value})}
+                placeholder="Teacher name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Camera / Streaming URL</Label>
+              <Input 
+                value={editFormData.streamUrl}
+                onChange={(e) => setEditFormData({...editFormData, streamUrl: e.target.value})}
+                placeholder="rtsp://..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select 
+                value={editFormData.status}
+                onValueChange={(value: "active" | "inactive") => setEditFormData({...editFormData, status: value})}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-popover">
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="gradient" onClick={handleEditSave}>
+              Save Changes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
